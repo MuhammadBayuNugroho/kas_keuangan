@@ -71,7 +71,7 @@
             </div>
             <div class="flex flex-col justify-center">
                 <h1 class="text-base font-extrabold tracking-tight text-apple-text leading-snug">
-                    PEMUDA RT 02
+                    PEMUDA/I RT 02 SEMAT
                 </h1>
                 <p class="text-[11px] font-medium text-apple-secondary uppercase tracking-wider">
                     Kas Keuangan Bersama
@@ -305,11 +305,21 @@
             return `${year}-${month}-${day}`;
         };
 
+        const getDeviceInfo = () => {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) return "Android";
+            if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return "iOS";
+            if (/Windows/.test(ua)) return "Windows";
+            if (/Mac OS X/.test(ua)) return "Mac";
+            if (/Linux/.test(ua)) return "Linux";
+            return "Lainnya";
+        };
+
         // Initialize App (Fetch dari Google Sheets)
         const init = async () => {
             tanggalInput.value = getTodayDate();
 
-            if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+            if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbybgD4ooceJ_diQ6drYxgU0cYkBhqAVpPRSSVtINqW6efDT2_JC002GvQNDZLWDdH8nBg/exec') {
                 alert("PERHATIAN: URL Google Script belum diatur. Silakan ikuti panduan dan edit file index.html untuk memasukkan URL API Anda.");
 
                 // Coba load dari local storage lama jika ada
@@ -625,13 +635,27 @@
             btnSubmit.disabled = true;
             btnSubmit.classList.add('opacity-70', 'cursor-not-allowed');
 
+            // Ambil IP Address dari API Publik
+            let ipAddress = "Tidak Diketahui";
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                ipAddress = ipData.ip;
+            } catch (err) {
+                console.log("Gagal mengambil IP:", err);
+            }
+
+            const perangkatInfo = getDeviceInfo();
+
             const transaksiData = {
                 id: currentEditId || Date.now().toString(), // Gunakan timestamp JS sebagai ID unik untuk baris ini
                 tanggal: tanggal,
                 keterangan: keterangan,
                 nominal: nominal,
                 jenis: jenis,
-                action: actionType
+                action: actionType,
+                ip_address: ipAddress,
+                perangkat: perangkatInfo
             };
 
             try {
