@@ -22,6 +22,7 @@
                             text: '#1d1d1f',
                             secondary: '#86868b',
                             blue: '#0071e3',
+                            red: '#ff3b30',
                             green: '#34c759',
                             card: '#ffffff'
                         }
@@ -61,17 +62,20 @@
     class="bg-apple-bg text-apple-text font-sans min-h-screen flex flex-col antialiased selection:bg-apple-blue selection:text-white">
 
     <!-- Header Apple Style (Glassmorphism) -->
-    <header class="sticky top-0 z-30 bg-white/70 backdrop-blur-lg border-b border-black/5">
-        <div class="max-w-md mx-auto px-5 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div
-                    class="w-8 h-8 rounded-full bg-gradient-to-br from-apple-green to-apple-blue flex items-center justify-center text-white shadow-sm shrink-0">
-                    <i class="ph-fill ph-wallet text-lg"></i>
-                </div>
-                <h1 class="text-base sm:text-lg font-bold tracking-tight text-apple-text leading-tight">Kas Keuangan
-                    Pemuda Pemudi RT 02 Semat</h1>
+    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-black/5 shadow-sm">
+        <div class="max-w-md mx-auto px-5 py-3 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full overflow-hidden shrink-0 shadow-sm border border-black/5 bg-white">
+                <!-- User harus meletakkan gambar logo.jpg di folder yang sama -->
+                <img src="logo.jpg" alt="Logo Pemuda RT 02" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=RT+02&background=d4af37&color=fff&size=128'">
             </div>
-            <!-- Tombol Hapus Dihilangkan sesuai permintaan -->
+            <div class="flex flex-col justify-center">
+                <h1 class="text-base font-extrabold tracking-tight text-apple-text leading-snug">
+                    PEMUDA RT 02
+                </h1>
+                <p class="text-[11px] font-medium text-apple-secondary uppercase tracking-wider">
+                    Kas Keuangan Bersama
+                </p>
+            </div>
         </div>
     </header>
 
@@ -81,7 +85,7 @@
         <!-- Kartu Saldo (Apple Card Style) -->
         <div
             class="bg-apple-card rounded-[28px] p-7 shadow-apple flex flex-col items-center justify-center text-center">
-            <p class="text-apple-secondary text-sm font-medium mb-2">Total Saldo Saat Ini</p>
+            <p class="text-apple-secondary text-sm font-medium mb-2">Total Saldo Kas Saat Ini</p>
             <h2 id="saldoDisplay" class="text-4xl font-bold tracking-tight text-apple-text mb-6">Rp 0</h2>
 
             <div class="flex w-full gap-4 text-sm bg-apple-bg/50 rounded-2xl p-4">
@@ -97,7 +101,7 @@
                 <div class="w-px bg-gray-200 my-2"></div>
                 <div class="flex-1">
                     <div class="flex items-center justify-center gap-1.5 mb-1 text-apple-secondary">
-                        <div class="p-1 rounded-full bg-apple-blue/10 text-apple-blue">
+                        <div class="p-1 rounded-full bg-apple-red/10 text-apple-red">
                             <i class="ph-bold ph-arrow-up-right text-xs"></i>
                         </div>
                         <span class="font-medium">Keluar</span>
@@ -422,8 +426,8 @@
             recentTransaksi.forEach((t, index) => {
                 const isMasuk = t.jenis === 'pemasukan';
                 const icon = isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right';
-                // Pemasukan = Hijau, Pengeluaran = Biru
-                const colorClass = isMasuk ? 'text-apple-green bg-apple-green/10' : 'text-apple-blue bg-apple-blue/10';
+                // Pemasukan = Hijau, Pengeluaran = Merah
+                const colorClass = isMasuk ? 'text-apple-green bg-apple-green/10' : 'text-apple-red bg-apple-red/10';
                 const sign = isMasuk ? '+' : '-';
 
                 const item = document.createElement('div');
@@ -543,23 +547,23 @@
                 // Update Focus Rings untuk input area
                 document.querySelectorAll('#transaksiForm input').forEach(inp => {
                     if (inp.type !== 'hidden') {
-                        inp.classList.remove('focus:border-apple-blue', 'focus:ring-apple-blue/10');
+                        inp.classList.remove('focus:border-apple-red', 'focus:ring-apple-red/10');
                         inp.classList.add('focus:border-apple-green', 'focus:ring-apple-green/10');
                     }
                 });
             } else {
                 // Style Tab
-                tabPengeluaran.className = 'flex-1 py-2.5 text-sm font-semibold rounded-lg bg-white shadow text-apple-blue transition-all';
+                tabPengeluaran.className = 'flex-1 py-2.5 text-sm font-semibold rounded-lg bg-white shadow text-apple-red transition-all';
                 tabPemasukan.className = 'flex-1 py-2.5 text-sm font-semibold rounded-lg text-apple-secondary hover:text-apple-text transition-all';
 
                 // Style Submit Button
-                btnSubmit.className = 'w-full py-4 rounded-2xl font-semibold text-white transition-all active:scale-95 bg-apple-blue hover:opacity-90';
+                btnSubmit.className = 'w-full py-4 rounded-2xl font-semibold text-white transition-all active:scale-95 bg-apple-red hover:opacity-90';
 
                 // Update Focus Rings untuk input area
                 document.querySelectorAll('#transaksiForm input').forEach(inp => {
                     if (inp.type !== 'hidden') {
                         inp.classList.remove('focus:border-apple-green', 'focus:ring-apple-green/10');
-                        inp.classList.add('focus:border-apple-blue', 'focus:ring-apple-blue/10');
+                        inp.classList.add('focus:border-apple-red', 'focus:ring-apple-red/10');
                     }
                 });
             }
@@ -636,9 +640,9 @@
                     method: 'POST',
                     body: JSON.stringify(transaksiData)
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.status === 'success') {
                     // Update state lokal agar UI langsung merefleksikan perubahan tanpa reload halaman
                     if (actionType === 'update') {
@@ -649,9 +653,9 @@
                     } else {
                         state.transaksi.unshift(transaksiData);
                     }
-                    
+
                     kalkulasiSaldo();
-                    saveBackup(); 
+                    saveBackup();
                     updateUI();
                     closeModal();
                 } else {
