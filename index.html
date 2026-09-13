@@ -109,7 +109,7 @@
 
         <!-- Tombol Aksi -->
         <div class="px-2">
-            <button onclick="openPinModal()"
+            <button onclick="handleAction('create')"
                 class="w-full bg-apple-text text-white rounded-[24px] p-4 flex flex-row items-center justify-center gap-3 shadow-apple transition-all active:scale-95 hover:bg-gray-800">
                 <i class="ph-bold ph-plus-circle text-2xl"></i>
                 <span class="font-semibold text-base">Input Transaksi</span>
@@ -244,6 +244,9 @@
             totalKeluar: 0,
             isLoading: false
         };
+        let isAuthenticated = false; // Sesi login
+        let pinCallback = null;      // Fungsi yang akan dipanggil setelah pin benar
+        let currentEditId = null;    // ID transaksi yang sedang diedit
 
         // DOM Elements
         const saldoDisplay = document.getElementById('saldoDisplay');
@@ -424,7 +427,8 @@
                 const sign = isMasuk ? '+' : '-';
 
                 const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors duration-200';
+                item.className = 'flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors duration-200 cursor-pointer';
+                item.onclick = () => handleAction('edit', t.id);
 
                 item.innerHTML = `
                     <div class="flex items-center gap-3.5 overflow-hidden">
@@ -442,6 +446,36 @@
                 `;
                 transaksiList.appendChild(item);
             });
+        };
+
+        // Action Handler (Create / Edit)
+        const handleAction = (action, id = null) => {
+            if (isAuthenticated) {
+                if (action === 'create') {
+                    currentEditId = null;
+                    modalTitle.textContent = "Catat Transaksi";
+                    btnSubmit.innerHTML = "Simpan Data";
+                    form.reset();
+                    tanggalInput.value = getTodayDate();
+                    setJenisTransaksi('pemasukan');
+                    openModal();
+                } else if (action === 'edit') {
+                    currentEditId = id;
+                    const trx = state.transaksi.find(t => t.id === id);
+                    if (trx) {
+                        modalTitle.textContent = "Edit Transaksi";
+                        btnSubmit.innerHTML = "Update Data";
+                        document.getElementById('nominal').value = trx.nominal;
+                        document.getElementById('keterangan').value = trx.keterangan;
+                        tanggalInput.value = trx.tanggal;
+                        setJenisTransaksi(trx.jenis);
+                        openModal();
+                    }
+                }
+            } else {
+                pinCallback = () => handleAction(action, id);
+                openPinModal();
+            }
         };
 
         // PIN Controls
@@ -470,10 +504,10 @@
         pinForm.addEventListener('submit', (e) => {
             e.preventDefault();
             if (pinInput.value === PIN_RAHASIA) {
+                isAuthenticated = true; // Simpan sesi login
                 closePinModal();
                 setTimeout(() => {
-                    openModal();
-                    setJenisTransaksi('pemasukan'); // Selalu kembali ke pemasukan saat buka awal
+                    if (pinCallback) pinCallback();
                 }, 300);
             } else {
                 // PIN Salah - Tampilkan error dan efek getar
@@ -578,18 +612,21 @@
 
             if (isNaN(nominal) || nominal <= 0) return;
 
+            const actionType = currentEditId ? 'update' : 'insert';
+
             // Update UI Button jadi Loading
             const originalBtnText = btnSubmit.innerHTML;
-            btnSubmit.innerHTML = '<i class="ph-bold ph-spinner-gap animate-spin text-lg inline-block mr-2"></i>Menyimpan...';
+            btnSubmit.innerHTML = `<i class="ph-bold ph-spinner-gap animate-spin text-lg inline-block mr-2"></i>${actionType === 'update' ? 'Mengupdate...' : 'Menyimpan...'}`;
             btnSubmit.disabled = true;
             btnSubmit.classList.add('opacity-70', 'cursor-not-allowed');
 
-            const transaksiBaru = {
-                id: Date.now().toString(), // Gunakan timestamp JS sebagai ID unik untuk baris ini
+            const transaksiData = {
+                id: currentEditId || Date.now().toString(), // Gunakan timestamp JS sebagai ID unik untuk baris ini
                 tanggal: tanggal,
                 keterangan: keterangan,
                 nominal: nominal,
-                jenis: jenis
+                jenis: jenis,
+                action: actionType
             };
 
             try {
@@ -597,16 +634,24 @@
                 // URL dari fetch akan menerima string text/plain yang di-parse otomatis oleh apps script (e.postData.contents)
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify(transaksiBaru)
+                    body: JSON.stringify(transaksiData)
                 });
-
+                
                 const result = await response.json();
-
+                
                 if (result.status === 'success') {
                     // Update state lokal agar UI langsung merefleksikan perubahan tanpa reload halaman
-                    state.transaksi.unshift(transaksiBaru);
+                    if (actionType === 'update') {
+                        const index = state.transaksi.findIndex(t => t.id === currentEditId);
+                        if (index !== -1) {
+                            state.transaksi[index] = transaksiData;
+                        }
+                    } else {
+                        state.transaksi.unshift(transaksiData);
+                    }
+                    
                     kalkulasiSaldo();
-                    saveBackup();
+                    saveBackup(); 
                     updateUI();
                     closeModal();
                 } else {
