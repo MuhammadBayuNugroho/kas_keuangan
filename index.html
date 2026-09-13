@@ -305,14 +305,35 @@
             return `${year}-${month}-${day}`;
         };
 
-        const getDeviceInfo = () => {
+        const getDeviceInfo = async () => {
             const ua = navigator.userAgent;
-            if (/android/i.test(ua)) return "Android";
-            if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return "iOS";
-            if (/Windows/.test(ua)) return "Windows";
-            if (/Mac OS X/.test(ua)) return "Mac";
-            if (/Linux/.test(ua)) return "Linux";
-            return "Lainnya";
+            let os = "Lainnya";
+            if (/android/i.test(ua)) os = "Android";
+            else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) os = "iOS";
+            else if (/Windows/.test(ua)) os = "Windows";
+            else if (/Mac OS X/.test(ua)) os = "Mac";
+            else if (/Linux/.test(ua)) os = "Linux";
+
+            // Coba API Client Hints modern (untuk browser Chromium terbaru)
+            if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+                try {
+                    const values = await navigator.userAgentData.getHighEntropyValues(['model']);
+                    if (values.model) {
+                        return `${os} (${values.model})`;
+                    }
+                } catch (e) {
+                    console.log("Client Hints gagal:", e);
+                }
+            }
+
+            // Fallback: Ekstrak string di dalam kurung pertama User-Agent (biasanya berisi detail device)
+            const match = ua.match(/\(([^)]+)\)/);
+            if (match && match[1]) {
+                return `${os} (${match[1]})`;
+            }
+
+            // Jika gagal, kembalikan OS + string mentah
+            return `${os} (${ua})`;
         };
 
         // Initialize App (Fetch dari Google Sheets)
@@ -637,7 +658,7 @@
                 console.log("Gagal mengambil IP:", err);
             }
 
-            const perangkatInfo = getDeviceInfo();
+            const perangkatInfo = await getDeviceInfo();
 
             const transaksiData = {
                 id: currentEditId || Date.now().toString(), // Gunakan timestamp JS sebagai ID unik untuk baris ini
