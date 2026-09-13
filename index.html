@@ -319,7 +319,7 @@
         const init = async () => {
             tanggalInput.value = getTodayDate();
 
-            if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbybgD4ooceJ_diQ6drYxgU0cYkBhqAVpPRSSVtINqW6efDT2_JC002GvQNDZLWDdH8nBg/exec') {
+            if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbybgD4ooceJ_diQ6drYxgU0cYkBhqAVpPRSSVtINqW6efDT2_JC002GvQNDZLWDdH8nBg/exec' || GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbybgD4ooceJ_diQ6drYxgU0cYkBhqAVpPRSSVtINqW6efDT2_JC002GvQNDZLWDdH8nBg/exec') {
                 alert("PERHATIAN: URL Google Script belum diatur. Silakan ikuti panduan dan edit file index.html untuk memasukkan URL API Anda.");
 
                 // Coba load dari local storage lama jika ada
@@ -615,7 +615,7 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbybgD4ooceJ_diQ6drYxgU0cYkBhqAVpPRSSVtINqW6efDT2_JC002GvQNDZLWDdH8nBg/exec') {
+            if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbybgD4ooceJ_diQ6drYxgU0cYkBhqAVpPRSSVtINqW6efDT2_JC002GvQNDZLWDdH8nBg/exec' || GOOGLE_SCRIPT_URL === '') {
                 alert("Tidak bisa menyimpan ke database. URL Google Script belum diatur.");
                 return;
             }
